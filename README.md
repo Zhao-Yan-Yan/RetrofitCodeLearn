@@ -409,14 +409,8 @@ protected boolean isViewAttached() {
         return module;
     }
 
-    /**
-     * 通过该方法创建Module
-     */
     protected abstract M createModule();
 
-    /**
-     * View代理类  防止 页面关闭P异步操作调用V 方法 空指针问题
-     */
     private class MvpViewHandler implements InvocationHandler {
 
         private IBaseView mvpView;
@@ -428,9 +422,10 @@ protected boolean isViewAttached() {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             //如果V层没被销毁, 执行V层的方法.
+            //P层不需要关注V层的返回值
             if (isViewAttached()) {
                 return method.invoke(mvpView, args);
-            } //P层不需要关注V层的返回值
+            } 
             return null;
         }
     }
