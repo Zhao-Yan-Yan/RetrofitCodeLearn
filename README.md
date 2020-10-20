@@ -336,3 +336,23 @@ static final class ExecutorCallbackCall<T> implements Call<T> {
 
 所以得出结论Retrofit的Call 的回调是运行主线程的,并且再声明Service接口时 return 的 Call 不是 OKhttp的Call 实际是 ExecutorCallbackCall
 
+# 问题
+
+## Retrofit是如何适配RxJava的
+
+通过 CallAdapter 通过判断方法的返回值类型 返回对应的 adapter
+
+## Gson这些是如何转换的
+
+OkHttpCall.enqueue 中进行实际的网络请求操作 并对结果进行处理
+
+通过 responseConverter.convert(catchingBody); 进行转换
+
+```
+```
+
+# 心得
+
+`Converter.Factory`和`CallAdapter.Factory` 的设计 让 Retrofit 有了更高的拓展性  这正是高内聚低耦合的实现案例
+
+一切设计应面向接口编程 让实际的核心操作 通过接口抽取 
