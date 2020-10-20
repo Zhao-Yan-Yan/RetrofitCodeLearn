@@ -420,7 +420,7 @@ public abstract class BasePresenter<M extends IBaseModel, V extends IBaseView> {
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             //如果V层没被销毁, 执行V层的方法.
             //P层不需要关注V层的返回值
-            if (!isViewAttached()) {
+            if (isViewAttached()) {
                 return method.invoke(mvpView, args);
             } 
             return null;
