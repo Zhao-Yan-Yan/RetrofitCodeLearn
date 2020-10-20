@@ -101,7 +101,7 @@ ServiceMethod<?> loadServiceMethod(Method method) {
 
 ## ServiceMethod.parseAnnotations
 
-```
+```java
 static <T> ServiceMethod<T> parseAnnotations(Retrofit retrofit, Method method) {
     RequestFactory requestFactory = RequestFactory.parseAnnotations(retrofit, method);
 
@@ -224,7 +224,7 @@ List<CallAdapter.Factory> callAdapterFactories = new ArrayList<>(this.callAdapte
 callAdapterFactories.addAll(platform.defaultCallAdapterFactories(callbackExecutor));
 ```
 这里的 callbackExecutor 在Androide的Okatfrorm 中有实现 
-```
+```java
 static final class MainThreadExecutor implements Executor {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -243,7 +243,7 @@ static final class MainThreadExecutor implements Executor {
 最终找到`DefaultCallAdapterFactory` 也就是 `platform.defaultCallAdapterFactories`中的
 
 注意之前 `callAdapterFactories.get().get()` 两次get 第一次是集合`callAdapterFactories`的get 第二次是 `CallAdapter.Factory`的get
-```
+```java
 public @Nullable CallAdapter<?, ?> get(
       Type returnType, Annotation[] annotations, Retrofit retrofit) {
  
@@ -271,7 +271,7 @@ public @Nullable CallAdapter<?, ?> get(
 
 也就是动态代理帮我们 return 的Call
 
-```
+```java
 class ProxyClass implements GitHubService {
     @NotNull
     @Override
