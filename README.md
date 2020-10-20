@@ -266,9 +266,13 @@ class ProxyClass implements GitHubService {
 
 得到最终的调用流程
 
-Retrofit.create --> Retrofit.loadServiceMethod(method).invoke(args) --> adapt(call, args) --> 
+`Retrofit.loadServiceMethod(method)` --> `ServiceMethod.parseAnnotations(this, method)` --> `HttpServiceMethod.parseAnnotations(retrofit, method, requestFactory)` --> `return new CallAdapted<>(requestFactory, callFactory, responseConverter, callAdapter);`
 
-Retrofit.loadServiceMethod(method) --> ServiceMethod.parseAnnotations(this, method) --> HttpServiceMethod.parseAnnotations(retrofit, method, requestFactory) --> return new CallAdapted<>(requestFactory, callFactory, responseConverter, callAdapter);
+`Retrofit.create` --> `Retrofit.loadServiceMethod(method).invoke(args)` --> `CallAdapted.invoke(args)` --> `adapt(call, args)` -->  `callAdapter.adapt(call)` --> `return new ExecutorCallbackCall<>(executor, call);`
+
+```
+
+
 ```
 
 ```
