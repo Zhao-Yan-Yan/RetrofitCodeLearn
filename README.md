@@ -380,10 +380,7 @@ public abstract class BasePresenter<M extends IBaseModel, V extends IBaseView> {
     @SuppressWarnings("unchecked")
     public void attachView(V view) {
         weakReference = new WeakReference<>(view);
-        mProxyView = (V) Proxy.newProxyInstance(
-                view.getClass().getClassLoader(),
-                view.getClass().getInterfaces(),
-                new MvpViewHandler(weakReference.get()));
+        mProxyView = (V) Proxy.newProxyInstance(view.getClass().getClassLoader(),view.getClass().getInterfaces(),new MvpViewHandler(weakReference.get()));
         if (this.module == null) {
             this.module = createModule();
         }
@@ -397,7 +394,7 @@ public abstract class BasePresenter<M extends IBaseModel, V extends IBaseView> {
         }
     }
 
-protected boolean isViewAttached() {
+    protected boolean isViewAttached() {
         return weakReference != null && weakReference.get() != null;
     }
 
@@ -431,4 +428,4 @@ protected boolean isViewAttached() {
     }
 }
 ```
-
+将view层的调用委托给MvpViewHandler 最终 invoke时统一加上 判断调用 method的invoke
