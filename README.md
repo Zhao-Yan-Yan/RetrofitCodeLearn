@@ -180,6 +180,7 @@ CallAdapted父类正好又是`HttpServiceMethod`
 
 protected abstract @Nullable ReturnT adapt(Call<ResponseT> call, Object[] args);
 ```
+这里的OKHttpCall是网络请求的真正实现 最终还是`OkHttp`
 
 正好`adapt`是抽象方法 在 `CallAdapted` 中有实现 `callAdapter.adapt(call);`
 
@@ -222,6 +223,19 @@ if (callbackExecutor == null) {
 List<CallAdapter.Factory> callAdapterFactories = new ArrayList<>(this.callAdapterFactories);
 callAdapterFactories.addAll(platform.defaultCallAdapterFactories(callbackExecutor));
 ```
+这里的 callbackExecutor 在Androide的Okatfrorm 中有实现 
+```
+static final class MainThreadExecutor implements Executor {
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    @Override
+    public void execute(Runnable r) {
+        handler.post(r);
+    }
+}
+```
+是一个线程池  execute post到了主线程执行
+
 默认有一个callAdapterFactories 在Platform中
 
 > Platform主要是对Java和Android的适配区分
@@ -245,6 +259,9 @@ public @Nullable CallAdapter<?, ?> get(
       }
     };
 }
+```
+```
+
 ```
 最终 return 一个 CallAdapter
 
@@ -272,8 +289,50 @@ class ProxyClass implements GitHubService {
 
 ```
 
+## ExecutorCallbackCall分析
+```java
+static final class ExecutorCallbackCall<T> implements Call<T> {
+    final Executor callbackExecutor;
+    final Call<T> delegate;
 
+    ExecutorCallbackCall(Executor callbackExecutor, Call<T> delegate) {
+      this.callbackExecutor = callbackExecutor;
+      this.delegate = delegate;
+    }
+
+    @Override
+    public void enqueue(final Callback<T> callback) {
+      Objects.requireNonNull(callback, "callback == null");
+
+      delegate.enqueue(
+          new Callback<T>() {
+            @Override
+            public void onResponse(Call<T> call, final Response<T> response) {
+              callbackExecutor.execute(
+                  () -> {
+                    if (delegate.isCanceled()) {
+                      // Emulate OkHttp's behavior of throwing/delivering an IOException on
+                      // cancellation.
+                      callback.onFailure(ExecutorCallbackCall.this, new IOException("Canceled"));
+                    } else {
+                      callback.onResponse(ExecutorCallbackCall.this, response);
+                    }
+                  });
+            }
+
+            @Override
+            public void onFailure(Call<T> call, final Throwable t) {
+              callbackExecutor.execute(() -> callback.onFailure(ExecutorCallbackCall.this, t));
+            }
+          });
+    }
+    //...省略
+}
 ```
 
-```
+`callbackExecutor` 是一个运行在主线程的线程池
+
+`delegate` 就是在 `invoke`传入`adapt`时创建的 `OkHttpCall` 进行实际的网络请求
+
+所以得出结论Retrofit的Call 的回调是运行主线程的,并且再声明Service接口时 return 的 Call 不是 OKhttp的Call 实际是 ExecutorCallbackCall
 
