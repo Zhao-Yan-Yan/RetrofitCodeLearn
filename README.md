@@ -356,3 +356,84 @@ OkHttpCall.enqueue 中进行实际的网络请求操作 并对结果进行处理
 `Converter.Factory`和`CallAdapter.Factory` 的设计 让 Retrofit 有了更高的拓展性  这正是高内聚低耦合的实现案例
 
 一切设计应面向接口编程 让实际的核心操作 通过接口抽取 
+
+动态代理的设计让方法的调用有了集中统一的管理
+
+实际的应用
+
+1. mvp中 presenter层 调用 view 层 可能会遇到 activity关闭 view已经null释放 presenter还在调用 出现null异常
+这里我们就可以通过动态代理在调用view层之前判断view是否为空 统一管理 无需每次调用都判断
+
+如何实现
+```java
+public abstract class BasePresenter<M extends IBaseModel, V extends IBaseView> {
+
+    private V mProxyView;
+    private M module;
+    private WeakReference<V> weakReference;
+    protected String TAG;
+
+    public BasePresenter() {
+        TAG = getClass().getSimpleName();
+    }
+
+    @SuppressWarnings("unchecked")
+    public void attachView(V view) {
+        weakReference = new WeakReference<>(view);
+        mProxyView = (V) Proxy.newProxyInstance(
+                view.getClass().getClassLoader(),
+                view.getClass().getInterfaces(),
+                new MvpViewHandler(weakReference.get()));
+        if (this.module == null) {
+            this.module = createModule();
+        }
+    }
+
+    public void detachView() {
+        this.module = null;
+        if (isViewAttached()) {
+            weakReference.clear();
+            weakReference = null;
+        }
+    }
+
+protected boolean isViewAttached() {
+        return weakReference != null && weakReference.get() != null;
+    }
+
+    protected V getView() {
+        return mProxyView;
+    }
+
+    protected M getModule() {
+        return module;
+    }
+
+    /**
+     * 通过该方法创建Module
+     */
+    protected abstract M createModule();
+
+    /**
+     * View代理类  防止 页面关闭P异步操作调用V 方法 空指针问题
+     */
+    private class MvpViewHandler implements InvocationHandler {
+
+        private IBaseView mvpView;
+
+        MvpViewHandler(IBaseView mvpView) {
+            this.mvpView = mvpView;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            //如果V层没被销毁, 执行V层的方法.
+            if (isViewAttached()) {
+                return method.invoke(mvpView, args);
+            } //P层不需要关注V层的返回值
+            return null;
+        }
+    }
+}
+```
+
