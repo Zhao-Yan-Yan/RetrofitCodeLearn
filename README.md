@@ -287,8 +287,6 @@ class ProxyClass implements GitHubService {
 
 `Retrofit.create` --> `Retrofit.loadServiceMethod(method).invoke(args)` --> `CallAdapted.invoke(args)` --> `adapt(call, args)` -->  `callAdapter.adapt(call)` --> `return new ExecutorCallbackCall<>(executor, call);`
 
-```
-
 ## ExecutorCallbackCall分析
 ```java
 static final class ExecutorCallbackCall<T> implements Call<T> {
