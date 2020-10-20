@@ -2,12 +2,12 @@
 Retrofit 源码分析 设计模式分析 心得
 
 # 问题
-1. 为什么我们调用接口方法没有具体实现就能请求网络
-2. Gson FastGson 等等 是如何转换的 Retrofit是怎样设计的
-3. Rxjava 这些 CallAdapter 又是如何设计的
-4. 为什么Retrofit的Call 在主线程中执行
-5. 我们在接口中声明的Call到底是谁 到底return了什么给我们调用
-6. 动态代理学到了什么
+1. 为什么我们调用接口方法没有具体实现就能请求网络 ?
+2. Gson FastGson 等等 是如何转换的 Retrofit是怎样设计的 ?
+3. Rxjava 这些 CallAdapter 又是如何设计的 ?
+4. 为什么Retrofit的Call 在主线程中执行 ?
+5. 我们在接口中声明的Call到底是谁 到底return了什么给我们调用 ?
+6. 通过动态代理学到了什么 ?
 
 # Retrofit 核心`create`
 
