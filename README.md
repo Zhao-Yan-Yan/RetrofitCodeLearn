@@ -226,8 +226,50 @@ callAdapterFactories.addAll(platform.defaultCallAdapterFactories(callbackExecuto
 
 > Platform主要是对Java和Android的适配区分
 
+最终找到`DefaultCallAdapterFactory` 也就是 `platform.defaultCallAdapterFactories`中的
 
+注意之前 `callAdapterFactories.get().get()` 两次get 第一次是集合`callAdapterFactories`的get 第二次是 `CallAdapter.Factory`的get
+```
+public @Nullable CallAdapter<?, ?> get(
+      Type returnType, Annotation[] annotations, Retrofit retrofit) {
+ 
+    return new CallAdapter<Object, Call<?>>() {
+      @Override
+      public Type responseType() {
+        return responseType;
+      }
 
+      @Override
+      public Call<Object> adapt(Call<Object> call) {
+        return executor == null ? call : new ExecutorCallbackCall<>(executor, call);
+      }
+    };
+}
+```
+最终 return 一个 CallAdapter
 
+回归到`callAdapter.adapt`  return `ExecutorCallbackCall`
 
+这个Call 就是我们在Service中定义的最终使用的Call
+
+也就是动态代理帮我们 return 的Call
+
+```
+class ProxyClass implements GitHubService {
+    @NotNull
+    @Override
+    public Call<Repo> listRepos(@NotNull String user) {
+        return new ExecutorCallbackCall<>(executor, call);
+    }
+}
+```
+
+得到最终的调用流程
+
+Retrofit.create --> Retrofit.loadServiceMethod(method).invoke(args) --> adapt(call, args) --> 
+
+Retrofit.loadServiceMethod(method) --> ServiceMethod.parseAnnotations(this, method) --> HttpServiceMethod.parseAnnotations(retrofit, method, requestFactory) --> return new CallAdapted<>(requestFactory, callFactory, responseConverter, callAdapter);
+```
+
+```
 
