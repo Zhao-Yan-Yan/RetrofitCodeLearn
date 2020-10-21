@@ -479,6 +479,7 @@ public <T> T create(final Class<T> service) {
     return (T) Proxy.newProxyInstance(service.getClassLoader(),new Class<?>[] {service},new InvocationHandler() {
         @Override
         public @Nullable Object invoke(Object proxy, Method method, @Nullable Object[] args) throws Throwable {
+            //CallAdapter.Factory.get()-->CallAdapter.adapt
             return callAdapterFactories.get(i).get(returnType, annotations, this).adapt(call)
         }
     });
