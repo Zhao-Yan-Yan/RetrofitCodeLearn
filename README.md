@@ -443,7 +443,7 @@ CallAdapter 的适配流程
 动态代理最终 `invoke` 会调用到 `HttpServiceMethod.invoke` ,  在 `HttpServiceMethod.invoke` 中会创建 `OkHttpCall`（这里是实际的Okhttp的请求）然后将 `OkHttpCall` 传递给 `HttpServiceMethod.adapt` 方法, 在 `CallAdapter` 中实现 调用的是 `callAdapter.adapt` . 这里的 `callAdapter` 实际上就是 `Retrofit` 初始化 `addCallAdapterFactory` 的一个 `CallAdapter`集合 , 在 `nextCallAdapter` 中遍历这个集合后调用 `get` 方法判断返回值是否为空 确定最终的 `CallAdapter` 然后调用该 `CallAdapter` 的 `adapt` 将 `OkHttpCall` 传入进行适配转换
 
 ```
-create 
+Retrofit.create() 
     --> loadServiceMethod().invoke()
         --> ServiceMethod.parseAnnotations().invoke()
             --> HttpServiceMethod.parseAnnotations().invoke()
@@ -454,4 +454,19 @@ create
                                 --> HttpServiceMetho.adapt(OkhHttpCall) //抽象方法 在子类(CallAdapted)有实现
                                     --> CallAdapted.adapt()
                                         --> callAdapter.adapt(call)
+
 ``` 
+callAdapter 获取流程
+```
+HttpServiceMethod.parseAnnotations()
+    --> HttpServiceMethod.createCallAdapter();
+        --> retrofit.callAdapter()
+            --> Retrofit.nextCallAdapter()
+                --> callAdapterFactories.get(i).get(returnType, annotations, this)
+                    --> new CallAdapted<>(callAdapter)
+```
+callAdapterFactories是一个集合 泛型`<CallAdapter.Factory>` `addCallAdapterFactory`都会添加到这个集合中
+
+在 `CallAdapter.Factory` 的 `get` 方法中 根据返回值类型 确定是否是要转换适配的方法
+
+如果是 实现具体的 `CallAdapter.adapt` 
