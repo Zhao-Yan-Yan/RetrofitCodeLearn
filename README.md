@@ -516,3 +516,55 @@ public Builder callFactory(okhttp3.Call.Factory factory) {
 主要作用就是解析 Service接口中定义的注解参数等
 
 并最终构建出一个OKhttp的request对象
+
+实际的请求 `OkHttpCall.enqueue()`
+```java
+call.enqueue(
+        new okhttp3.Callback() {
+          @Override
+          public void onResponse(okhttp3.Call call, okhttp3.Response rawResponse) {
+            Response<T> response;
+            try {
+              response = parseResponse(rawResponse);
+            } catch (Throwable e) {
+              throwIfFatal(e);
+              callFailure(e);
+              return;
+            }
+
+            try {
+              callback.onResponse(OkHttpCall.this, response);
+            } catch (Throwable t) {
+              throwIfFatal(t);
+              t.printStackTrace(); // TODO this is not great
+            }
+          }
+
+          @Override
+          public void onFailure(okhttp3.Call call, IOException e) {
+            callFailure(e);
+          }
+
+          private void callFailure(Throwable e) {
+            try {
+              callback.onFailure(OkHttpCall.this, e);
+            } catch (Throwable t) {
+              throwIfFatal(t);
+              t.printStackTrace(); // TODO this is not great
+            }
+          }
+        });
+```
+`parseResponse()`中进行格式转换 
+
+```
+ T body = responseConverter.convert(catchingBody);
+```
+
+`responseConverter` 同样是在 `HttpServiceMethod.parseAnnotations`中获取并传参的
+
+```java
+Converter<ResponseBody, ResponseT> responseConverter =
+        createResponseConverter(retrofit, method, responseType);
+```
+与CallAdapter 的获取类似 是从 `converterFactories`中获取的 
