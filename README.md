@@ -470,3 +470,21 @@ callAdapterFactories是一个集合 泛型`<CallAdapter.Factory>` `addCallAdapte
 在 `CallAdapter.Factory` 的 `get` 方法中 根据返回值类型 确定是否是要转换适配的方法
 
 如果是 实现具体的 `CallAdapter.adapt` 将传进来的 `OkHttpCall` 进行适配
+
+综上
+
+```
+
+```java
+public <T> T create(final Class<T> service) {
+    validateServiceInterface(service);
+    return (T) Proxy.newProxyInstance(service.getClassLoader(),new Class<?>[] {service},new InvocationHandler() {
+        @Override
+        public @Nullable Object invoke(Object proxy, Method method, @Nullable Object[] args) throws Throwable {
+            return callAdapterFactories.get(i).get(returnType, annotations, this).adapt(call)
+        }
+    });
+}
+```
+
+```
