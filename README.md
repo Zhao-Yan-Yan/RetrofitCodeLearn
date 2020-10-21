@@ -440,6 +440,7 @@ public abstract class BasePresenter<M extends IBaseModel, V extends IBaseView> {
 # 答
 CallAdapter 的适配流程
 
-动态代理最终 invoke 会调用到 HttpServiceMethod.invoke ,在 HttpServiceMethod.invoke 中会创建 OkHttpCall（这里是实际的Okhttp的请求）然后将OkHttpCall 传递给 HttpServiceMethod.adapt 方法, 在CallAdapter中实现 调用的是 callAdapter.adapt . 这里的 callAdapter 实际上就是 Retrofit 初始化 addCallAdapterFactory 的一个CallAdapter集合 , 在 nextCallAdapter 中遍历这个集合后调用get方法判断返回值是否为空  
+动态代理最终 `invoke` 会调用到 `HttpServiceMethod.invoke` ,  在 `HttpServiceMethod.invoke` 中会创建 `OkHttpCall`（这里是实际的Okhttp的请求）然后将 `OkHttpCall` 传递给 `HttpServiceMethod.adapt` 方法, 在 `CallAdapter` 中实现 调用的是 `callAdapter.adapt` . 这里的 `callAdapter` 实际上就是 `Retrofit` 初始化 `addCallAdapterFactory` 的一个 `CallAdapter`集合 , 在 `nextCallAdapter` 中遍历这个集合后调用 `get` 方法判断返回值是否为空 确定最终的 `CallAdapter` 然后调用该 `CallAdapter` 的 `adapt` 将 `OkHttpCall` 传入进行适配转换
+
 invoke --> HttpServiceMethod.invoke
 
