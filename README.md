@@ -5,7 +5,7 @@ Retrofit 源码分析 设计模式分析 心得
 1. 为什么我们调用接口方法没有具体实现就能请求网络 ?
 2. Gson FastGson 等等 是如何转换的 Retrofit是怎样设计的 ?
 3. Rxjava 这些 CallAdapter 又是如何设计的 ?
-4. 为什么Retrofit的Call 在主线程中执行 ?
+4. 为什么Retrofit的 Call的回调是在主线程中执行的 ?
 5. 我们在接口中声明的Call到底是谁 到底return了什么给我们调用 ?
 6. 通过动态代理学到了什么 ?
 
@@ -438,8 +438,7 @@ public abstract class BasePresenter<M extends IBaseModel, V extends IBaseView> {
 
 
 # 答
-CallAdapter 的适配流程
-
+## Rxjava 等 CallAdapter 的适配转换流程
 动态代理最终 `invoke` 会调用到 `HttpServiceMethod.invoke` ,  在 `HttpServiceMethod.invoke` 中会创建 `OkHttpCall`（这里是实际的Okhttp的请求）然后将 `OkHttpCall` 传递给 `HttpServiceMethod.adapt` 方法, 在 `CallAdapter` 中实现 调用的是 `callAdapter.adapt` . 这里的 `callAdapter` 实际上就是 `Retrofit` 初始化 `addCallAdapterFactory` 的一个 `CallAdapter`集合 , 在 `nextCallAdapter` 中遍历这个集合后调用 `get` 方法判断返回值是否为空 确定最终的 `CallAdapter` 然后调用该 `CallAdapter` 的 `adapt` 将 `OkHttpCall` 传入进行适配转换
 
 ```
@@ -485,3 +484,35 @@ public <T> T create(final Class<T> service) {
     });
 }
 ```
+## Gson FastJson 等 Converter 流程
+
+OkHttpCall 进行实际的网络请求操作
+
+```java
+private okhttp3.Call createRawCall() throws IOException {
+    okhttp3.Call call = callFactory.newCall(requestFactory.create(args));
+    if (call == null) {
+        throw new NullPointerException("Call.Factory returned null.");
+    }
+    return call;
+}
+```
+
+callFactory 实际上是 Retrofit.client 时传入的OkHttpClient
+
+```java
+public Builder client(OkHttpClient client) {
+    return callFactory(Objects.requireNonNull(client, "client == null"));
+}
+
+public Builder callFactory(okhttp3.Call.Factory factory) {
+    this.callFactory = Objects.requireNonNull(factory, "factory == null");
+    return this;
+}
+```
+
+`requestFactory`是 `ServiceMethod.parseAnnotations()` 时 进行解析 `RequestFactory.parseAnnotations(retrofit, method);`
+
+主要作用就是解析 Service接口中定义的注解参数等
+
+并最终构建出一个OKhttp的request对象
