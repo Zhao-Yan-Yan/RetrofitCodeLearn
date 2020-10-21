@@ -442,5 +442,16 @@ CallAdapter 的适配流程
 
 动态代理最终 `invoke` 会调用到 `HttpServiceMethod.invoke` ,  在 `HttpServiceMethod.invoke` 中会创建 `OkHttpCall`（这里是实际的Okhttp的请求）然后将 `OkHttpCall` 传递给 `HttpServiceMethod.adapt` 方法, 在 `CallAdapter` 中实现 调用的是 `callAdapter.adapt` . 这里的 `callAdapter` 实际上就是 `Retrofit` 初始化 `addCallAdapterFactory` 的一个 `CallAdapter`集合 , 在 `nextCallAdapter` 中遍历这个集合后调用 `get` 方法判断返回值是否为空 确定最终的 `CallAdapter` 然后调用该 `CallAdapter` 的 `adapt` 将 `OkHttpCall` 传入进行适配转换
 
-invoke --> HttpServiceMethod.invoke
-
+```
+create 
+    --> loadServiceMethod().invoke()
+        --> ServiceMethod.parseAnnotations().invoke()
+            --> HttpServiceMethod.parseAnnotations().invoke()
+                --> new CallAdapted<>().invoke()
+                    --> CallAdapted继承自HttpServiceMethod
+                        --> HttpServiceMethod.invoke()
+                            --> 创建OkHttpCall(实际的网络请求操作)
+                                --> HttpServiceMetho.adapt(OkhHttpCall) //抽象方法 在子类(CallAdapted)有实现
+                                    --> CallAdapted.adapt()
+                                        --> callAdapter.adapt(call)
+``` 
