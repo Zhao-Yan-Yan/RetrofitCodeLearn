@@ -473,8 +473,6 @@ callAdapterFactories是一个集合 泛型`<CallAdapter.Factory>` `addCallAdapte
 
 综上
 
-```
-
 ```java
 public <T> T create(final Class<T> service) {
     validateServiceInterface(service);
@@ -485,6 +483,4 @@ public <T> T create(final Class<T> service) {
         }
     });
 }
-```
-
 ```
