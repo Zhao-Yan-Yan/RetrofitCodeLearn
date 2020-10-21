@@ -452,7 +452,7 @@ Retrofit.create()
                         --> HttpServiceMethod.invoke()
                             --> 创建OkHttpCall(实际的网络请求操作)
                                 --> HttpServiceMetho.adapt(OkhHttpCall) //抽象方法 在子类(CallAdapted)有实现
-                                    --> CallAdapted.adapt()
+                                    --> CallAdapted.adapt(OkhHttpCall)
                                         --> callAdapter.adapt(call)
 
 ``` 
@@ -469,4 +469,4 @@ callAdapterFactories是一个集合 泛型`<CallAdapter.Factory>` `addCallAdapte
 
 在 `CallAdapter.Factory` 的 `get` 方法中 根据返回值类型 确定是否是要转换适配的方法
 
-如果是 实现具体的 `CallAdapter.adapt` 
+如果是 实现具体的 `CallAdapter.adapt` 将传进来的 `OkHttpCall` 进行适配
